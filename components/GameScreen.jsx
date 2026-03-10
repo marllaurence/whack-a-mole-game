@@ -1,59 +1,45 @@
 import * as Haptics from 'expo-haptics';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, Text, View } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
 import { styles } from './GameScreen.styles';
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const CIRCLE_RADIUS = 90;
-const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
-
-export default function GameScreen({ score, setScore, onGameOver, soundWhack, soundBomb }) {
+function Hole({ score, setScore, onGameOver, soundWhack, soundBomb }) {
   const [entity, setEntity] = useState('EMPTY');
-  const slideAnim = useRef(new Animated.Value(180)).current;
+  const slideAnim = useRef(new Animated.Value(90)).current;
   const sparkAnim = useRef(new Animated.Value(1)).current;
-  const timerAnim = useRef(new Animated.Value(1)).current;
   const plusOneAnimY = useRef(new Animated.Value(0)).current;
   const plusOneAnimOpacity = useRef(new Animated.Value(0)).current;
   const timerRef = useRef(null);
   const isTransitioning = useRef(false);
-
-  const strokeDashoffset = timerAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [CIRCLE_CIRCUMFERENCE, 0],
-  });
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
 
     if (entity === 'EMPTY') {
       isTransitioning.current = false;
-      slideAnim.setValue(180);
+      slideAnim.setValue(90);
       sparkAnim.setValue(1);
-      timerAnim.setValue(1);
-      const waitTime = Math.random() * 1200 + 1000;
+      
+      const minWait = Math.max(1000 - score * 25, 300);
+      const randomWait = Math.random() * Math.max(3000 - score * 50, 500);
+      const waitTime = minWait + randomWait;
+      
       timerRef.current = setTimeout(() => {
-        setEntity(Math.random() > 0.3 ? 'MOLE' : 'BOMB');
+        setEntity(Math.random() > 0.25 ? 'MOLE' : 'BOMB');
       }, waitTime);
     } else if (entity === 'MOLE') {
-      timerAnim.setValue(1);
-      Animated.timing(slideAnim, { toValue: 0, duration: 350, useNativeDriver: true }).start();
+      Animated.timing(slideAnim, { toValue: 0, duration: 250, useNativeDriver: true }).start();
       
-      const reactionTime = Math.max(1500 - score * 40, 600);
-      
-      Animated.timing(timerAnim, {
-        toValue: 0,
-        duration: reactionTime,
-        useNativeDriver: true,
-      }).start();
+      const reactionTime = Math.max(2000 - score * 45, 600);
 
       timerRef.current = setTimeout(() => {
-        Animated.timing(slideAnim, { toValue: 180, duration: 300, useNativeDriver: true }).start(() => {
-          onGameOver();
+        Animated.timing(slideAnim, { toValue: 90, duration: 200, useNativeDriver: true }).start(() => {
+          setEntity('EMPTY');
+          onGameOver("YOU MISSED A MOLE!");
         });
       }, reactionTime);
     } else if (entity === 'BOMB') {
-      Animated.timing(slideAnim, { toValue: 0, duration: 400, useNativeDriver: true }).start();
+      Animated.timing(slideAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
       Animated.loop(
         Animated.sequence([
           Animated.timing(sparkAnim, { toValue: 1.4, duration: 150, useNativeDriver: true }),
@@ -61,11 +47,13 @@ export default function GameScreen({ score, setScore, onGameOver, soundWhack, so
         ])
       ).start();
 
+      const bombHideTime = Math.max(1500 - score * 30, 700);
+
       timerRef.current = setTimeout(() => {
-        Animated.timing(slideAnim, { toValue: 180, duration: 350, useNativeDriver: true }).start(() => {
+        Animated.timing(slideAnim, { toValue: 90, duration: 250, useNativeDriver: true }).start(() => {
           setEntity('EMPTY');
         });
-      }, 1200);
+      }, bombHideTime);
     }
 
     return () => {
@@ -80,8 +68,7 @@ export default function GameScreen({ score, setScore, onGameOver, soundWhack, so
       isTransitioning.current = true;
       if (timerRef.current) clearTimeout(timerRef.current);
       slideAnim.stopAnimation();
-      timerAnim.stopAnimation();
-      
+
       if (soundWhack) {
         soundWhack.seekTo(0);
         soundWhack.play();
@@ -92,100 +79,90 @@ export default function GameScreen({ score, setScore, onGameOver, soundWhack, so
       plusOneAnimY.setValue(0);
       plusOneAnimOpacity.setValue(1);
       Animated.parallel([
-        Animated.timing(plusOneAnimY, { toValue: -80, duration: 600, useNativeDriver: true }),
-        Animated.timing(plusOneAnimOpacity, { toValue: 0, duration: 600, useNativeDriver: true })
+        Animated.timing(plusOneAnimY, { toValue: -40, duration: 500, useNativeDriver: true }),
+        Animated.timing(plusOneAnimOpacity, { toValue: 0, duration: 500, useNativeDriver: true })
       ]).start();
-      
-      Animated.timing(slideAnim, { toValue: 180, duration: 200, useNativeDriver: true }).start(() => {
+
+      Animated.timing(slideAnim, { toValue: 90, duration: 150, useNativeDriver: true }).start(() => {
         setEntity('EMPTY');
       });
     } else if (entity === 'BOMB') {
       isTransitioning.current = true;
       if (timerRef.current) clearTimeout(timerRef.current);
       slideAnim.stopAnimation();
-      timerAnim.stopAnimation();
-      
+
       if (soundBomb) {
         soundBomb.seekTo(0);
         soundBomb.play();
       }
-      onGameOver();
+      onGameOver("YOU CLICKED A BOMB!");
     }
   };
 
   return (
-    <Pressable style={styles.fullScreenButton} onPress={handleTap}>
+    <Pressable style={styles.holeWrapper} onPress={handleTap}>
+      <View style={styles.dirtBase} />
+      <View style={styles.holeRim} />
+      <View style={styles.holeOpening} />
+
+      <View style={styles.maskContainer}>
+        <Animated.View style={[{ transform: [{ translateY: slideAnim }] }, styles.entityContainer]}>
+          {entity === 'MOLE' && (
+            <View style={styles.moleBody}>
+              <View style={styles.moleEyesContainer}>
+                <View style={styles.moleEye} />
+                <View style={styles.moleEye} />
+              </View>
+              <View style={styles.moleNose} />
+              <View style={styles.moleMouth}>
+                <View style={styles.moleTooth} />
+              </View>
+            </View>
+          )}
+
+          {entity === 'BOMB' && (
+            <View style={styles.bombContainer}>
+              <Animated.View style={[styles.bombSpark, { transform: [{ scale: sparkAnim }] }]} />
+              <View style={styles.bombCap} />
+              <View style={styles.bombBody}>
+                <View style={styles.bombHighlight} />
+              </View>
+            </View>
+          )}
+        </Animated.View>
+      </View>
+
+      <View style={styles.holeFrontLip} />
+
+      <Animated.Text style={[styles.plusOneText, {
+        opacity: plusOneAnimOpacity,
+        transform: [{ translateY: plusOneAnimY }]
+      }]}>
+        +1
+      </Animated.Text>
+    </Pressable>
+  );
+}
+
+export default function GameScreen({ score, setScore, onGameOver, soundWhack, soundBomb }) {
+  const holes = Array.from({ length: 9 });
+
+  return (
+    <View style={styles.fullScreenButton}>
       <Text style={styles.inGameScore}>{score}</Text>
       
-      <View style={styles.playArea}>
-        <View style={styles.dirtBase} />
-        
-        <View style={styles.holeRim} />
-        <View style={styles.holeOpening} />
-        
-        {entity === 'MOLE' && (
-          <View style={styles.svgContainer}>
-            <Svg width="200" height="200">
-              <Circle 
-                cx="100" 
-                cy="100" 
-                r={CIRCLE_RADIUS} 
-                stroke="rgba(255, 76, 76, 0.2)" 
-                strokeWidth="10" 
-                fill="transparent" 
-              />
-              <AnimatedCircle
-                cx="100" 
-                cy="100" 
-                r={CIRCLE_RADIUS}
-                stroke="#FF4C4C" 
-                strokeWidth="10" 
-                fill="transparent"
-                strokeDasharray={CIRCLE_CIRCUMFERENCE} 
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round" 
-                transform="rotate(-90 100 100)"
-              />
-            </Svg>
-          </View>
-        )}
-        
-        <View style={styles.maskContainer}>
-          <Animated.View style={[{ transform: [{ translateY: slideAnim }] }, styles.entityContainer]}>
-            {entity === 'MOLE' && (
-              <View style={styles.moleBody}>
-                <View style={styles.moleEyesContainer}>
-                  <View style={styles.moleEye} />
-                  <View style={styles.moleEye} />
-                </View>
-                <View style={styles.moleNose} />
-                <View style={styles.moleMouth}>
-                  <View style={styles.moleTooth} />
-                </View>
-              </View>
-            )}
-            
-            {entity === 'BOMB' && (
-              <View style={styles.bombContainer}>
-                <Animated.View style={[styles.bombSpark, { transform: [{ scale: sparkAnim }] }]} />
-                <View style={styles.bombCap} />
-                <View style={styles.bombBody}>
-                  <View style={styles.bombHighlight} />
-                </View>
-              </View>
-            )}
-          </Animated.View>
-        </View>
-        
-        <View style={styles.holeFrontLip} />
-
-        <Animated.Text style={[styles.plusOneText, { 
-          opacity: plusOneAnimOpacity, 
-          transform: [{ translateY: plusOneAnimY }] 
-        }]}>
-          +1
-        </Animated.Text>
+      <View style={styles.gridArea}>
+        {holes.map((_, index) => (
+          <Hole 
+            key={index} 
+            score={score} 
+            setScore={setScore} 
+            onGameOver={onGameOver} 
+            soundWhack={soundWhack} 
+            soundBomb={soundBomb} 
+          />
+        ))}
       </View>
-    </Pressable>
+    </View>
   );
 }

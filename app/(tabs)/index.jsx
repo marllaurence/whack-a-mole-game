@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, ImageBackground, Pressable, Text, Vibration, View } from 'react-native';
 import GameScreen from '../../components/GameScreen';
 import { styles } from '../../components/index.styles';
@@ -11,6 +11,7 @@ export default function App() {
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [isBgmEnabled, setIsBgmEnabled] = useState(true);
+  const [gameOverReason, setGameOverReason] = useState('');
 
   const bgmPlayer = useAudioPlayer(require('../../assets/sounds/bgm.mp3'));
   const goPlayer = useAudioPlayer(require('../../assets/sounds/gameover.mp3'));
@@ -105,10 +106,11 @@ export default function App() {
 
   const startGame = () => {
     setScore(0);
+    setGameOverReason('');
     setGameState('PLAYING');
   };
 
-  const gameOver = () => {
+  const gameOver = (reason) => {
     Vibration.vibrate(500);
     if (goPlayer) {
       goPlayer.seekTo(0);
@@ -117,6 +119,7 @@ export default function App() {
     if (score > highScore) {
       saveHighScore(score);
     }
+    setGameOverReason(reason);
     setGameState('GAMEOVER');
   };
 
@@ -193,6 +196,7 @@ export default function App() {
       {gameState === 'GAMEOVER' && (
         <Pressable style={styles.fullScreenButton} onPress={startGame}>
           <Text style={styles.gameOverTitle}>GAME OVER</Text>
+          <Text style={styles.gameOverReasonText}>{gameOverReason}</Text>
           
           <View style={styles.finalScoreBoard}>
             <Text style={styles.finalScoreLabel}>FINAL SCORE</Text>

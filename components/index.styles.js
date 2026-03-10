@@ -164,4 +164,15 @@ export const styles = StyleSheet.create({
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 2,
   },
+  gameOverReasonText: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#FF6347',
+    marginBottom: 30,
+    textShadowColor: '#3E2723',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 1,
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
 });
