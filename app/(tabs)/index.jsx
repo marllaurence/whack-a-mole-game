@@ -12,6 +12,7 @@ export default function App() {
   const [highScore, setHighScore] = useState(0);
   const [isBgmEnabled, setIsBgmEnabled] = useState(true);
   const [gameOverReason, setGameOverReason] = useState('');
+  const [canRestart, setCanRestart] = useState(false);
 
   const bgmPlayer = useAudioPlayer(require('../../assets/sounds/bgm.mp3'));
   const goPlayer = useAudioPlayer(require('../../assets/sounds/gameover.mp3'));
@@ -105,22 +106,39 @@ export default function App() {
   };
 
   const startGame = () => {
+    if (gameState === 'GAMEOVER' && !canRestart) return;
     setScore(0);
     setGameOverReason('');
+    setCanRestart(false);
     setGameState('PLAYING');
   };
 
   const gameOver = (reason) => {
     Vibration.vibrate(500);
-    if (goPlayer) {
-      goPlayer.seekTo(0);
-      goPlayer.play();
+    
+    if (reason === "YOU CLICKED A BOMB!") {
+      setTimeout(() => {
+        if (goPlayer) {
+          goPlayer.seekTo(0);
+          goPlayer.play();
+        }
+      }, 800);
+    } else {
+      if (goPlayer) {
+        goPlayer.seekTo(0);
+        goPlayer.play();
+      }
     }
+
     if (score > highScore) {
       saveHighScore(score);
     }
     setGameOverReason(reason);
     setGameState('GAMEOVER');
+    
+    setTimeout(() => {
+      setCanRestart(true);
+    }, 1500);
   };
 
   const toggleBgm = () => {
@@ -194,7 +212,7 @@ export default function App() {
       )}
 
       {gameState === 'GAMEOVER' && (
-        <Pressable style={styles.fullScreenButton} onPress={startGame}>
+        <Pressable style={styles.fullScreenButton} onPress={canRestart ? startGame : null}>
           <Text style={styles.gameOverTitle}>GAME OVER</Text>
           <Text style={styles.gameOverReasonText}>{gameOverReason}</Text>
           
@@ -208,7 +226,9 @@ export default function App() {
             <Text style={styles.highScoreNumber}>{highScore}</Text>
           </View>
 
-          <Text style={styles.subtitle}>Tap to Restart</Text>
+          {canRestart && (
+            <Text style={styles.subtitle}>Tap to Restart</Text>
+          )}
         </Pressable>
       )}
     </ImageBackground>

@@ -20,17 +20,18 @@ function Hole({ score, setScore, onGameOver, soundWhack, soundBomb }) {
       slideAnim.setValue(90);
       sparkAnim.setValue(1);
       
-      const minWait = Math.max(1000 - score * 25, 300);
-      const randomWait = Math.random() * Math.max(3000 - score * 50, 500);
+      const minWait = Math.max(800 - score * 5, 400);
+      const randomWait = Math.random() * Math.max(2500 - score * 15, 800);
       const waitTime = minWait + randomWait;
       
       timerRef.current = setTimeout(() => {
-        setEntity(Math.random() > 0.25 ? 'MOLE' : 'BOMB');
+        const bombChance = Math.min(0.25 + (score * 0.005), 0.65);
+        setEntity(Math.random() > bombChance ? 'MOLE' : 'BOMB');
       }, waitTime);
     } else if (entity === 'MOLE') {
       Animated.timing(slideAnim, { toValue: 0, duration: 250, useNativeDriver: true }).start();
       
-      const reactionTime = Math.max(2000 - score * 45, 600);
+      const reactionTime = Math.max(2000 - score * 12, 900);
 
       timerRef.current = setTimeout(() => {
         Animated.timing(slideAnim, { toValue: 90, duration: 200, useNativeDriver: true }).start(() => {
@@ -47,7 +48,7 @@ function Hole({ score, setScore, onGameOver, soundWhack, soundBomb }) {
         ])
       ).start();
 
-      const bombHideTime = Math.max(1500 - score * 30, 700);
+      const bombHideTime = Math.max(1500 - score * 10, 800);
 
       timerRef.current = setTimeout(() => {
         Animated.timing(slideAnim, { toValue: 90, duration: 250, useNativeDriver: true }).start(() => {
