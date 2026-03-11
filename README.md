@@ -1,50 +1,8 @@
-# Welcome to your Expo app 👋
+Game Idea
+I created a mobile version of Whack-a-Mole which uses React Native and Expo to deliver its traditional arcade experience. The game goes beyond basic tapping because I created a complete 9-hole grid where moles and bombs appear through random patterns. The game needed to create intense pressure for players because I designed the rules to create immediate game termination when players touch bombs or fail to stop one mole from escaping. The arcade experience becomes real through my research on game feel which includes creating a custom component-based UI and designing tactile haptic vibrations and building an audio system that produces satisfying gameplay experiences.
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Most Difficult Part to Implement
+The main challenge in this project is execution stemmed from managing both timing and state tracking. The process required me to establish nine separate holes which needed to execute their random timer functions while preventing both memory leakage and ghosting problems. The audio engine created constant conflicts for me during development. I started with the old expo-av package but it created an annoying half-second delay when players hit a mole. I needed to completely remove the system and build a new sound engine with modern expo-audio hooks to guarantee immediate sound activation.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Future Improvements
+I want to create additional disruptions for the board but I need more time to continue my work. The game needs a fast "golden mole" which provides bonus points and a hardhat mole which requires double-tap for victory. I currently store high scores in local storage but I want to connect my system to a cloud database which would enable international player competition through a worldwide leaderboard. I want to improve the visual effects by using authentic particle physics to create bomb explosions and I also want to include a nostalgic 60-second time-attack mode for entertainment.
